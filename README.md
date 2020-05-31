@@ -32,7 +32,7 @@ In other words, just add "# menu title" in the file once, and "# menu
 item: &lt;ch&gt;" to create a command from a make file target.  Then
 running "makefilemenu Makefile" shows:
 
-    ===== Development tools =====
+    ===== My title =====
     a: hello  b: foo
 
     Choice: 
@@ -53,4 +53,4 @@ executed:
 
     .PHONY: menu
     menu:
-        @makefilemenu $(thisfile)
+    	@makefilemenu $(thisfile)
