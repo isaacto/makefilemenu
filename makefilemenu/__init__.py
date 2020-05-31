@@ -19,11 +19,17 @@ class Menu:  # pylint: disable=too-few-public-methods
     "Represent the menu"
     title = attr.ib()   # type: str
     choices = attr.ib() # type: typing.Dict[str, str]
+    quit_cmds = attr.ib() # type: typing.Set[str]
 
     @classmethod
     def get_menu(cls, filename: str) -> 'Menu':
-        "Get the menu by reading menu items marked in the Makefile"
-        ret = cls('', collections.OrderedDict())
+        """Get the menu by reading menu items marked in the Makefile
+
+        Args:
+            filename: The name of the Makefile
+
+        """
+        ret = cls('', collections.OrderedDict(), set())
         pending = None
         with open(filename, 'rt') as fin:
             for line in fin:
@@ -41,13 +47,29 @@ class Menu:  # pylint: disable=too-few-public-methods
                     target = match.group(1).split()[0]
                     if target[0] != '.':
                         assert pending not in ret.choices, \
-                            'Conflicting option %s' % pending
+                            'Conflicting command %s' % pending
                         ret.choices[pending] = target
                         pending = None
         return ret
 
+    def add_quit_cmd(self, cmd: str) -> None:
+        """Add a quit command
+
+        Args:
+            cmd: The command to use
+
+        """
+        assert cmd not in self.choices, 'Conflicting cammand %s' % cmd
+        self.choices['q'] = 'quit'
+        self.quit_cmds.add('quit')
+
     def to_str(self, columns: int) -> str:
-        "Turn the menu to a string"
+        """Turn the menu to a string
+
+        Args:
+            cmd: Maximum length of a line
+
+        """
         splitted = [self.choices]
         try:
             for num_col in range(1, 10):

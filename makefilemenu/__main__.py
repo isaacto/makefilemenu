@@ -11,15 +11,18 @@ def main():
     calf.call(makefile_menu)
 
 
-def makefile_menu(filename: str) -> None:
+def makefile_menu(filename: str, *, quit_cmd: str = 'q') -> None:
     """Show a menu from an annotated Makefile
 
     Args:
         filename: The name of the annotated makefile
+        quit_cmd: The command to be used as quit command, empty to skip
 
     """
     try:
         menu = makefilemenu.Menu.get_menu(filename)
+        if quit_cmd:
+            menu.add_quit_cmd(quit_cmd)
         while True:
             print('===== %s =====' % menu.title)
             _, columns = (
@@ -29,6 +32,8 @@ def makefile_menu(filename: str) -> None:
             print(menu.to_str(columns))
             item = input('\nChoice: ')
             choice = menu.choices.get(item)
+            if choice in menu.quit_cmds:
+                break
             if choice:
                 ret = subprocess.call(
                     ['make', '-f', filename, '--no-print-directory', choice])

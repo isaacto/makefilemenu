@@ -33,14 +33,17 @@ item: &lt;ch&gt;" to create a command from a make file target.  Then
 running "makefilemenu Makefile" shows:
 
     ===== My title =====
-    a: hello  b: foo
+    a: hello  b: foo  q: quit
 
     Choice: 
 
 You can choose one of the commands, and the corresponding target is
-made.  To exit, press Control-C or Control-D.  Regular "make" usage is
-not interfered, so you can still say "make foo hello" on the command
-line to make both targets.
+made.  Note that a "quit" command is automatically added to quit the
+program.  If you don't want it, you can use "--quit_cmd ''" to disable
+it.  In such case, to exit, press Control-C or Control-D.
+
+Regular "make" usage is not interfered, so you can still say "make foo
+hello" on the command line to make both targets.
 
 You can also add a few clauses to the Makefile, so that running
 makefilemenu is the default target, and your file can be simply

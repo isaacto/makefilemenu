@@ -26,6 +26,8 @@ foo:
         assert menu.title == 'Hello world'
         assert menu.to_str(15) == 'a: hello\nb: foo'
         assert menu.to_str(20) == '''a: hello  b: foo'''
+        menu.add_quit_cmd('q')
+        assert menu.to_str(30) == '''a: hello  b: foo  q: quit'''
     finally:
         os.unlink(filename)
 
