@@ -4,7 +4,6 @@ import collections
 import itertools
 import math
 import re
-import subprocess
 import typing
 
 import attr
@@ -82,7 +81,7 @@ class Menu:  # pylint: disable=too-few-public-methods
                  for col, s in enumerate(items)]
         ret = []  # type: typing.List[str]
         for row in itertools.zip_longest(*items):
-            ret.append('  '.join(row).rstrip())
+            ret.append('  '.join(r for r in row if r).rstrip())
         return '\n'.join(ret)
 
     @classmethod
