@@ -24,7 +24,6 @@ def makefile_menu(filename: str, *, quit_cmd: str = 'q') -> None:
         if quit_cmd:
             menu.add_quit_cmd(quit_cmd)
         while True:
-            print('===== %s =====' % menu.title)
             _, columns = (
                 int(x) for x in
                 subprocess.check_output(['stty', 'size']).decode().split()

@@ -9,15 +9,17 @@ import typing
 import attr
 
 
-DIRECTIVE_RE = re.compile(r'^#\s*menu\s+(item|title):\s*(.*)\s*$')
+DIRECTIVE_RE = re.compile(r'^#\s*menu\s+(item|title|comment):\s*(.*)\s*$')
 TARGET_RE = re.compile(r'^([^#\s].+?)\s?:')
+
+
+SubmenuType = typing.Dict[str, str]
 
 
 @attr.s
 class Menu:  # pylint: disable=too-few-public-methods
     "Represent the menu"
-    title = attr.ib()   # type: str
-    choices = attr.ib() # type: typing.Dict[str, str]
+    entries = attr.ib()  # type: typing.List[typing.Union[str, SubmenuType]]
     quit_cmds = attr.ib() # type: typing.Set[str]
 
     @classmethod
@@ -28,14 +30,16 @@ class Menu:  # pylint: disable=too-few-public-methods
             filename: The name of the Makefile
 
         """
-        ret = cls('', collections.OrderedDict(), set())
+        ret = cls([], set())
         pending = None
         with open(filename, 'rt') as fin:
             for line in fin:
                 match = DIRECTIVE_RE.match(line)
                 if match:
                     if match.group(1) == 'title':
-                        ret.title = match.group(2)
+                        ret.entries.append('===== %s =====' % match.group(2))
+                    elif match.group(1) == 'comment':
+                        ret.entries.append(match.group(2))
                     if match.group(1) == 'item':
                         pending = match.group(2)
                     continue
@@ -45,10 +49,32 @@ class Menu:  # pylint: disable=too-few-public-methods
                 if match:
                     target = match.group(1).split()[0]
                     if target[0] != '.':
-                        assert pending not in ret.choices, \
-                            'Conflicting command %s' % pending
-                        ret.choices[pending] = target
+                        ret.add_command(pending, target, False)
                         pending = None
+        return ret
+
+    def add_command(self, pending: str, target: str, first: bool) -> None:
+        assert pending not in self.choices, 'Conflicting command %s' % pending
+        submenu = None
+        if first:
+            for entry in self.entries:
+                if isinstance(entry, dict):
+                    submenu = entry
+                    break
+        else:
+            if self.entries and isinstance(self.entries[-1], dict):
+                submenu = self.entries[-1]
+        if submenu is None:
+            submenu = collections.OrderedDict()
+            self.entries.append(submenu)
+        submenu[pending] = target
+
+    @property
+    def choices(self) -> SubmenuType:
+        ret = collections.OrderedDict()
+        for entry in self.entries:
+            if isinstance(entry, dict):
+                ret.update(entry)
         return ret
 
     def add_quit_cmd(self, cmd: str) -> None:
@@ -58,8 +84,7 @@ class Menu:  # pylint: disable=too-few-public-methods
             cmd: The command to use
 
         """
-        assert cmd not in self.choices, 'Conflicting cammand %s' % cmd
-        self.choices['q'] = 'quit'
+        self.add_command('q', 'quit', True)
         self.quit_cmds.add('quit')
 
     def to_str(self, columns: int) -> str:
@@ -69,43 +94,49 @@ class Menu:  # pylint: disable=too-few-public-methods
             cmd: Maximum length of a line
 
         """
-        splitted = [self.choices]
-        try:
-            for num_col in range(1, 10):
-                splitted = self._get_splitted(self.choices, num_col, columns)
-        except RuntimeError:
-            pass
-        items = [[self._item_str(*i) for i in s.items()] for s in splitted]
-        lens = [max(len(x) for x in i) for i in items]
-        items = [[('%%-%ds' % lens[col]) % i for i in s]
-                 for col, s in enumerate(items)]
+        widths = [int(1e6)]
+        for num_col in range(2, 10):
+            new_widths = self._get_widths(num_col)
+            if sum(new_widths) + 2 * (len(new_widths) - 1) < columns:
+                widths = new_widths
+            else:
+                break
         ret = []  # type: typing.List[str]
-        for row in itertools.zip_longest(*items):
-            ret.append('  '.join(r for r in row if r).rstrip())
+        for entry in self.entries:
+            if not isinstance(entry, dict):
+                ret.append(entry)
+            else:
+                self._convert_submenu(ret, entry, widths)
         return '\n'.join(ret)
 
-    @classmethod
-    def _get_splitted(cls, choices: typing.Dict[str, str], num_col: int,
-                      max_len: int) -> typing.List[typing.Dict[str, str]]:
-        "Get the result splitting the list of choices into num_col"
-        if num_col > len(choices):
-            raise RuntimeError('Too short list')
-        num_row = math.ceil(len(choices) / num_col)
-        ret = []  # type: typing.List[typing.Dict[str, str]]
-        items = list(choices.items())
-        for start in range(0, len(items), num_row):
-            ret.append(collections.OrderedDict(items[start : start + num_row]))
-        if 2 * num_col - 2 + sum(cls._get_width(s) for s in ret) > max_len - 1:
-            raise RuntimeError('Result too wide')
+    def _get_widths(self, num_col: int) -> typing.List[int]:
+        ret = [0] * num_col
+        for submenu in self.entries:
+            if not isinstance(submenu, dict):
+                continue
+            item_strs = list(self._submenu_itemstrs(submenu))
+            num_row = math.ceil(len(item_strs) / num_col)
+            for idx, start in enumerate(range(0, len(item_strs), num_row)):
+                for item_str in item_strs[start : start + num_row]:
+                    ret[idx] = max(ret[idx], len(item_str))
         return ret
 
     @classmethod
-    def _get_width(cls, choices: typing.Dict[str, str]) -> int:
-        "Get the width required for a list of choices if shown in one column"
-        return max([0] + list(len(cls._item_str(*item))
-                              for item in choices.items()))
+    def _convert_submenu(cls, ret: typing.List[str], submenu: SubmenuType,
+                         widths: typing.List[int]) -> None:
+        item_strs = list(cls._submenu_itemstrs(submenu))
+        num_row = math.ceil(len(item_strs) / len(widths))
+        splitted = []  # type: typing.List[typing.List[str]]
+        for idx, start in enumerate(range(0, len(item_strs), num_row)):
+            splitted.append(list(item_strs[start : start + num_row]))
+        for row in itertools.zip_longest(*splitted):
+            items = []
+            for item, width in zip(row, widths):
+                if item:
+                    items.append(('%%-%ds' % width) % item)
+            ret.append('  '.join(items).rstrip())
 
     @staticmethod
-    def _item_str(key: str, val: str) -> str:
-        "The string for a menu item"
-        return '%s: %s' % (key, val)
+    def _submenu_itemstrs(submenu: SubmenuType) -> typing.Iterator[str]:
+        for key, desc in submenu.items():
+            yield '%s: %s' % (key, desc)

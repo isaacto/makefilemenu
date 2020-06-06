@@ -28,14 +28,23 @@ annotate your Makefile as follows:
     foo:
     	echo foo bar
 
+    # menu comment: Section 2
+
+    # menu item: c
+    .PHONY: world
+    world:
+    	echo 42
+
 In other words, just add "# menu title" in the file once, and "# menu
 item: &lt;ch&gt;" to create a command from a make file target.  Then
 running "makefilemenu Makefile" shows:
 
     ===== My title =====
     a: hello  b: foo  q: quit
+    Section 2
+    c: world
 
-    Choice: 
+    Choice:
 
 You can choose one of the commands, and the corresponding target is
 made.  Note that a "quit" command is automatically added to quit the
