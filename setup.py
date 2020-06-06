@@ -32,6 +32,6 @@ setuptools.setup(
         'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
+        'Operating System :: POSIX :: Linux',
     ],
 )
