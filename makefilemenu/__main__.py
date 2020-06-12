@@ -7,6 +7,10 @@ import makefilemenu
 
 
 def main():
+    try:
+        import readline
+    except ImportError:
+        pass
     import calf
     calf.call(makefile_menu)
 
