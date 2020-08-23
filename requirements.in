@@ -3,6 +3,7 @@ mypy
 pylint
 pytest
 pytest-cov
+pytest-mock
 twine
 wheel
 calf

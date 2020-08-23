@@ -1,18 +1,33 @@
 "The main entry point of makefilemenu"
 
-import subprocess
+import fcntl
+import readline
+import struct
+import termios
 import typing
 
 import makefilemenu
 
 
-def main():
-    try:
-        import readline
-    except ImportError:
-        pass
+def main() -> None:
     import calf
     calf.call(makefile_menu)
+
+
+def rlinput(prompt: str, prefill: str = '') -> str:
+    """Input with readline allowing prefill text
+
+    Args:
+
+        prompt: The input prompt
+        prefill: The text to prefill
+
+    """
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    try:
+        return input(prompt)
+    finally:
+        readline.set_startup_hook()
 
 
 def makefile_menu(filename: str, *, quit_cmd: str = 'q') -> None:
@@ -24,27 +39,19 @@ def makefile_menu(filename: str, *, quit_cmd: str = 'q') -> None:
 
     """
     try:
-        menu = makefilemenu.Menu.get_menu(filename)
+        menu = makefilemenu.Menu(filename)
+        menu.setup()
         if quit_cmd:
             menu.add_quit_cmd(quit_cmd)
         while True:
-            _, columns = (
-                int(x) for x in
-                subprocess.check_output(['stty', 'size']).decode().split()
-            )
+            # Get windows size
+            wsz = fcntl.ioctl(0, termios.TIOCGWINSZ, '        ') # type: ignore
+            columns = struct.unpack('@4H', wsz)[1]
             print(menu.to_str(columns))
-            item = input('\nChoice: ')
-            choice = menu.choices.get(item)
-            if choice in menu.quit_cmds:
-                break
-            if choice:
-                ret = subprocess.call(
-                    ['make', '-f', filename, '--no-print-directory', choice])
-                if ret != 0:
-                    print('Error code:', ret)
-            elif item:
-                print('Command', item, 'not defined')
-            print()
+            to_print, to_exit = menu.invoke(input('\nChoice: '), rlinput)
+            print(to_print)
+            if to_exit:
+                return
     except (KeyboardInterrupt, EOFError):
         pass
 

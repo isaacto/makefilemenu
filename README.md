@@ -66,3 +66,34 @@ executed:
     .PHONY: menu
     menu:
     	@makefilemenu $(thisfile)
+
+## Variables
+
+Two types of variables may be set using `makefilemenu`: environment
+variables and Makefile variables.  Environment variables are set using
+`# menu envvar`, like this.
+
+    # menu envvar var
+    # menu envvar d:var
+
+This adds an initially unset variable `var`, and a menu entry to set
+the variable.  In the first case the menu entry is invoked by `var`,
+in the second case it is by `d`.
+
+You can set the initial value of the variable to be `val` as follows:
+
+    # menu envvar var=val
+    # menu envvar d:var=val
+
+In this case, if an empty value is set on the command line, it is
+given an empty value (if there is no default value, an empty value
+would unset the variable).
+
+After the environment variable is given a value, when a command is
+invoked the make command is invoked with the environment variable set.
+
+You can replace `envvar` by `makevar` in the `# menu` directive above.
+In this case, the environment variable is not used, but instead the
+`make` command is invoked like:
+
+    make var=val ...
