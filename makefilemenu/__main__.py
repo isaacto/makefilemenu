@@ -92,10 +92,13 @@ def makefile_menu(filename: str, *, quit_cmd: str = 'q') -> None:
             setup_completer(sorted(menu.cmds.keys()))
             res = input('\nChoice: ')
             setup_completer(None)
-            to_print, to_exit = menu.invoke(res, rlinput)
-            print(to_print)
-            if to_exit:
-                return
+            try:
+                to_print, to_exit = menu.invoke(res, rlinput)
+                print(to_print)
+                if to_exit:
+                    return
+            except KeyboardInterrupt:
+                pass
     except (KeyboardInterrupt, EOFError):
         pass
 
