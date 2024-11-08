@@ -1,6 +1,7 @@
 "The main entry point of makefilemenu"
 
 import fcntl
+import functools
 import os
 import struct
 import termios
@@ -39,14 +40,27 @@ else:
         readline.parse_and_bind("bind '\t' rl_complete")
     else:
         readline.parse_and_bind('tab: complete')
-        readline.set_completer_delims(
-           ' \t\n`~!@#$%^&*()-=+[{]}\\|;:\'",<>?')
+        readline.set_completer_delims('/')
+
+
+    basic_completer = readline.set_completer
+
+
+    if 'pyrepl' in readline.__doc__:  # Home brew a path completer
+
+        def path_completer(text: str, state: int) -> str:
+            tdir = readline.get_line_buffer()[:readline.get_begidx()]
+            name = [f for f in os.listdir(tdir) if f.startswith(text)][state]
+            return f'{name}/' if os.path.isdir(f'{tdir}/{name}') else name
+
+        basic_completer = functools.partial(
+            readline.set_completer, path_completer)
 
 
     def setup_completer(choices: typing.Optional[typing.List[str]]) -> None:
         "Set completer"
         if not choices:
-            readline.set_completer()
+            basic_completer()
         else:
             def _completer(text: str, state: int) -> str:
                 assert choices
