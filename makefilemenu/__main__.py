@@ -88,9 +88,9 @@ def makefile_menu(filename: str, *, quit_cmd: str = 'q') -> None:
             # Get windows size
             wsz = fcntl.ioctl(0, termios.TIOCGWINSZ, '        ') # type: ignore
             columns = struct.unpack('@4H', wsz)[1]
-            print(menu.to_str(columns))
+            print(menu.to_str(columns) + '\n')
             setup_completer(sorted(menu.cmds.keys()))
-            res = input('\nChoice: ')
+            res = input('Choice: ')
             setup_completer(None)
             try:
                 to_print, to_exit = menu.invoke(res, rlinput)
