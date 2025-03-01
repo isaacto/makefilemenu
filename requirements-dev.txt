@@ -4,37 +4,37 @@
 #
 #    pip-compile requirements-dev.in
 #
-astroid==3.3.5
+astroid==3.3.8
     # via pylint
-attrs==24.2.0
+attrs==25.1.0
     # via -r requirements-dev.in
 backports-tarfile==1.2.0
     # via jaraco-context
 calf==0.3.3
     # via -r requirements-dev.in
-certifi==2024.8.30
+certifi==2025.1.31
     # via requests
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
-coverage[toml]==7.6.4
+coverage[toml]==7.6.12
     # via pytest-cov
-cryptography==43.0.3
+cryptography==44.0.1
     # via secretstorage
 dill==0.3.9
     # via pylint
 docutils==0.21.2
     # via readme-renderer
+id==1.5.0
+    # via twine
 idna==3.10
     # via requests
-importlib-metadata==8.5.0
-    # via
-    #   keyring
-    #   twine
+importlib-metadata==8.6.1
+    # via keyring
 iniconfig==2.0.0
     # via pytest
-isort==5.13.2
+isort==6.0.1
     # via pylint
 jaraco-classes==3.4.0
     # via keyring
@@ -42,11 +42,11 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
-jeepney==0.8.0
+jeepney==0.9.0
     # via
     #   keyring
     #   secretstorage
-keyring==25.5.0
+keyring==25.6.0
     # via twine
 markdown-it-py==3.0.0
     # via rich
@@ -54,33 +54,33 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.5.0
+more-itertools==10.6.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-mypy==1.13.0
+mypy==1.15.0
     # via -r requirements-dev.in
 mypy-extensions==1.0.0
     # via mypy
-nh3==0.2.18
+nh3==0.2.21
     # via readme-renderer
 packaging==24.2
-    # via pytest
-pkginfo==1.10.0
-    # via twine
+    # via
+    #   pytest
+    #   twine
 platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via pytest
 pycparser==2.22
     # via cffi
-pygments==2.18.0
+pygments==2.19.1
     # via
     #   readme-renderer
     #   rich
-pylint==3.3.1
+pylint==3.3.4
     # via -r requirements-dev.in
-pytest==8.3.3
+pytest==8.3.4
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -93,6 +93,7 @@ readme-renderer==44.0
     # via twine
 requests==2.32.3
     # via
+    #   id
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
@@ -105,15 +106,15 @@ secretstorage==3.3.3
     # via keyring
 tomlkit==0.13.2
     # via pylint
-twine==5.1.1
+twine==6.1.0
     # via -r requirements-dev.in
 typing-extensions==4.12.2
     # via mypy
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   requests
     #   twine
-wheel==0.44.0
+wheel==0.45.1
     # via -r requirements-dev.in
-zipp==3.20.2
+zipp==3.21.0
     # via importlib-metadata
