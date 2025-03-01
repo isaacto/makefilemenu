@@ -40,7 +40,8 @@ else:
         readline.parse_and_bind("bind '\t' rl_complete")
     else:
         readline.parse_and_bind('tab: complete')
-        readline.set_completer_delims('/')
+        readline.set_completer_delims(
+            readline.get_completer_delims().replace('/', ''))
 
 
     basic_completer = readline.set_completer
