@@ -12,25 +12,27 @@ import typing
 import attr
 
 
+__version__ = '0.4.5'
+
+
 DIRECTIVE_RE = re.compile(
     r'^#\s*menu\s+(item|title|comment|envvar|makevar):\s*(.*)\s*$')
 TARGET_RE = re.compile(r'^([^#\s].+?)\s?:')
 
 
-SubmenuType = typing.Dict[str, str]
+SubmenuType = dict[str, str]
 InputFunc = typing.Callable[[str, str], str]
-CmdType = typing.Callable[[InputFunc], typing.Tuple[str, bool]]
+CmdType = typing.Callable[[InputFunc], tuple[str, bool]]
 
 
 @attr.s
 class Menu:  # pylint: disable=too-few-public-methods
     "Represent the menu"
-    filename = attr.ib()  # type: str
-    entries = attr.ib(factory=lambda: []
-    )  # type: typing.List[typing.Union[str, SubmenuType]]
-    cmds = attr.ib(factory=lambda: {})  # type: typing.Dict[str, CmdType]
-    em_vars = attr.ib(factory=lambda: {})  # type: typing.Dict[str, str]
-    em_unsettable = attr.ib(factory=lambda: set())  # type: typing.Set[str]
+    filename: str = attr.ib()
+    entries: list[typing.Union[str, SubmenuType]] = attr.ib(factory=lambda: [])
+    cmds: dict[str, CmdType] = attr.ib(factory=lambda: {})
+    em_vars: dict[str, str] = attr.ib(factory=lambda: {})
+    em_unsettable: set[str] = attr.ib(factory=lambda: set())
 
     def setup(self) -> None:
         "Get the menu by reading menu items marked in the Makefile"
@@ -107,18 +109,16 @@ class Menu:  # pylint: disable=too-few-public-methods
         """
         self.add_command('q', 'quit', self._quit, True)
 
-    def _quit(self, input_func: InputFunc) -> typing.Tuple[str, bool]:
+    def _quit(self, input_func: InputFunc) -> tuple[str, bool]:
         _ = input_func
         return '', True
 
-    def _setvar(self, emvar: str, input_func: InputFunc) \
-            -> typing.Tuple[str, bool]:
+    def _setvar(self, emvar: str, input_func: InputFunc) -> tuple[str, bool]:
         self.em_vars[emvar] = input_func('%s=' % emvar[1:],
                                          self.em_vars.get(emvar, ''))
         return '', False
 
-    def _make(self, target: str, input_func: InputFunc) \
-             -> typing.Tuple[str, bool]:
+    def _make(self, target: str, input_func: InputFunc) -> tuple[str, bool]:
         _ = input_func
         env = os.environ.copy()
         extra = []
@@ -134,8 +134,7 @@ class Menu:  # pylint: disable=too-few-public-methods
             return 'Error code: %s\n' % ret, False
         return '', False
 
-    def invoke(self, choice: str, input_func: InputFunc) \
-            -> typing.Tuple[str, bool]:
+    def invoke(self, choice: str, input_func: InputFunc) -> tuple[str, bool]:
         """Invoke a choice
 
         Args:
@@ -166,7 +165,7 @@ class Menu:  # pylint: disable=too-few-public-methods
                 widths = new_widths
             else:
                 break
-        ret = []  # type: typing.List[str]
+        ret: list[str] = []
         for entry in self.entries:
             if not isinstance(entry, dict):
                 ret.append(entry)
@@ -174,7 +173,7 @@ class Menu:  # pylint: disable=too-few-public-methods
                 self._convert_submenu(ret, entry, widths)
         return '\n'.join(ret)
 
-    def _get_widths(self, num_col: int) -> typing.List[int]:
+    def _get_widths(self, num_col: int) -> list[int]:
         ret = [0] * num_col
         for submenu in self.entries:
             if not isinstance(submenu, dict):
@@ -187,11 +186,11 @@ class Menu:  # pylint: disable=too-few-public-methods
         return ret
 
     @classmethod
-    def _convert_submenu(cls, ret: typing.List[str], submenu: SubmenuType,
-                         widths: typing.List[int]) -> None:
+    def _convert_submenu(cls, ret: list[str], submenu: SubmenuType,
+                         widths: list[int]) -> None:
         item_strs = list(cls._submenu_itemstrs(submenu))
         num_row = math.ceil(len(item_strs) / len(widths))
-        splitted = []  # type: typing.List[typing.List[str]]
+        splitted: list[list[str]] = []
         for idx, start in enumerate(range(0, len(item_strs), num_row)):
             splitted.append(list(item_strs[start : start + num_row]))
         for row in itertools.zip_longest(*splitted):
