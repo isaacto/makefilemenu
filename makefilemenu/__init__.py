@@ -12,7 +12,7 @@ import typing
 import attr
 
 
-__version__ = '0.4.5'
+__version__ = '0.5'
 
 
 DIRECTIVE_RE = re.compile(
